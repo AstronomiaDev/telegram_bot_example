@@ -1,10 +1,10 @@
 import json
 import requests
 
-TOKEN = "1114999373:AAG8-ueFU8wUF_NEzMY4lQFGLGIAHMUY0rA"
+TOKEN = "TOKEN"
 offset = 0
 base_url = "https://api.telegram.org/bot" + TOKEN
-channel_id = -1001437534617
+channel_id = 0
 user_list = dict()
 media_group_dict = dict()
 
@@ -42,7 +42,9 @@ def handle_tiga(chat_id):
     return resp
 
 
-def handle_komplain(chat_id, file_id, first_name, last_name, jenis_komplain, text, jenis_message):
+def handle_komplain(
+    chat_id, file_id, first_name, last_name, jenis_komplain, text, jenis_message
+):
     if jenis_message == "text":
         forwarded_text = f"From: {first_name} {last_name}\n\nJenis komplain: {jenis_komplain}\n\nKomplain: {text}"
         payload_channel = {
@@ -65,7 +67,7 @@ def handle_komplain(chat_id, file_id, first_name, last_name, jenis_komplain, tex
         payload_channel = {
             "chat_id": channel_id,
             "photo": file_id,
-            "caption": forwarded_text
+            "caption": forwarded_text,
         }
         resp_channel = requests.post(base_url + "/sendPhoto", json=payload_channel)
         payload = {
@@ -196,9 +198,7 @@ while True:
                             user_list.pop((from_id, chat_id), None)
                     else:
                         payload = {"chat_id": chat_id, "text": "anda belum /start"}
-                        resp = requests.post(
-                            base_url + "/sendMessage", data=payload
-                        )
+                        resp = requests.post(base_url + "/sendMessage", data=payload)
             except Exception:
                 jenis_message = None
                 file_id = None
@@ -211,7 +211,9 @@ while True:
                 if (from_id, chat_id) in user_list:
                     if user_list[(from_id, chat_id)] is not None:
                         jenis_komplain = user_list[(from_id, chat_id)]
-                        if ("photo" in message["message"]) or ("video" in message["message"]):
+                        if ("photo" in message["message"]) or (
+                            "video" in message["message"]
+                        ):
                             user_list.pop((from_id, chat_id), None)
                             if "caption" in message["message"]:
                                 text = message["message"]["caption"]
@@ -222,7 +224,9 @@ while True:
                                 jenis_message = "video"
                                 file_id = message["message"]["video"]["file_id"]
                             if "media_group_id" in message["message"]:
-                                media_group_dict[chat_id] = message["message"]["media_group_id"]
+                                media_group_dict[chat_id] = message["message"][
+                                    "media_group_id"
+                                ]
                             resp_channel, resp = handle_komplain(
                                 chat_id=chat_id,
                                 file_id=file_id,
@@ -237,7 +241,10 @@ while True:
                             )
                 elif "media_group_id" in message["message"]:
                     if chat_id in media_group_dict:
-                        if media_group_dict[chat_id] == message["message"]["media_group_id"]:
+                        if (
+                            media_group_dict[chat_id]
+                            == message["message"]["media_group_id"]
+                        ):
                             text = None
                             if "photo" in message["message"]:
                                 jenis_message = "foto"
@@ -258,7 +265,10 @@ while True:
                             f"Komplain dari {first_name} {last_name} berjenis {jenis_komplain}. Isinya {text}"
                         )
                     else:
-                        payload = {"chat_id": chat_id, "text": "Terjadi error, coba lagi"}
+                        payload = {
+                            "chat_id": chat_id,
+                            "text": "Terjadi error, coba lagi",
+                        }
                         resp = requests.post(base_url + "/sendMessage", data=payload)
                         pass
                 else:
